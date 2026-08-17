@@ -1,0 +1,136 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updatePerson } from "@/server/persons";
+import { uploadPersonPhoto } from "@/server/storage";
+import type { TreeDetail } from "@/lib/tree/detail";
+
+type Member = TreeDetail["members"][number];
+
+export function EditPersonDialog({
+  treeId,
+  shareToken,
+  member,
+  onOpenChange,
+}: {
+  treeId: string;
+  shareToken?: string;
+  member: Member | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const router = useRouter();
+  const [fullName, setFullName] = useState("");
+  const [gender, setGender] = useState<"male" | "female">("male");
+  const [birthDate, setBirthDate] = useState("");
+  const [deathDate, setDeathDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!member) return;
+    setFullName(member.person.fullName);
+    setGender(member.person.gender);
+    setBirthDate(member.person.birthDate ?? "");
+    setDeathDate(member.person.deathDate ?? "");
+    setNotes(member.person.notes ?? "");
+    setPhotoFile(null);
+    setError(null);
+  }, [member]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!member) return;
+    setError(null);
+    setLoading(true);
+    try {
+      let photoUrl: string | undefined;
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        const uploaded = await uploadPersonPhoto({ data: formData });
+        photoUrl = uploaded.url;
+      }
+      await updatePerson({
+        data: {
+          personId: member.personId,
+          treeId,
+          shareToken,
+          fullName,
+          gender,
+          photoUrl,
+          birthDate: birthDate || undefined,
+          deathDate: deathDate || undefined,
+          notes: notes || undefined,
+        },
+      });
+      onOpenChange(false);
+      await router.invalidate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan perubahan.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={member !== null} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Individu</DialogTitle>
+          <DialogDescription>Perubahan biodata berlaku untuk individu ini di semua silsilah.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="edit-fullName">Nama Lengkap</FieldLabel>
+              <Input id="edit-fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </Field>
+            <Field>
+              <FieldLabel>Jenis Kelamin</FieldLabel>
+              <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Laki-laki</SelectItem>
+                  <SelectItem value="female">Perempuan</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field orientation="responsive">
+              <div className="w-full">
+                <FieldLabel htmlFor="edit-birthDate">Tanggal Lahir</FieldLabel>
+                <Input id="edit-birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+              </div>
+              <div className="w-full">
+                <FieldLabel htmlFor="edit-deathDate">Tanggal Wafat</FieldLabel>
+                <Input id="edit-deathDate" type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} />
+              </div>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-photo">Ganti Foto</FieldLabel>
+              <Input id="edit-photo" type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-notes">Catatan</FieldLabel>
+              <Textarea id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </Field>
+            {error && <FieldError>{error}</FieldError>}
+          </FieldGroup>
+          <DialogFooter className="mt-4">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
