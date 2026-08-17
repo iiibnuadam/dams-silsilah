@@ -1,9 +1,20 @@
 import { useMemo, useRef, useState } from "react";
 import { Background, Controls, MiniMap, ReactFlow, type NodeMouseHandler } from "@xyflow/react";
+import { Link } from "@tanstack/react-router";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
-import { DownloadIcon, FileImageIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  DownloadIcon,
+  FileImageIcon,
+  ListIcon,
+  NetworkIcon,
+  Share2Icon,
+  SettingsIcon,
+  TreesIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +24,13 @@ import {
 import { PersonNode } from "@/components/tree/PersonNode";
 import { MarriageNode } from "@/components/tree/MarriageNode";
 import { EditPersonDialog } from "@/components/tree/EditPersonDialog";
+import { MembersModal } from "@/components/tree/MembersModal";
+import { RelationshipsModal } from "@/components/tree/RelationshipsModal";
+import { TreeSettingsModal } from "@/components/tree/TreeSettingsModal";
+import { AddPersonDialog } from "@/components/tree/AddPersonDialog";
+import { RelationshipDialog } from "@/components/tree/RelationshipDialog";
 import { layoutTree, type TreeNode } from "@/lib/tree/layout";
-import { computeChildrenMap, getDescendantMemberIds } from "@/lib/tree/generation";
+import { computeChildrenMap, getHiddenByCollapse } from "@/lib/tree/generation";
 import type { TreeDetail } from "@/lib/tree/detail";
 
 const nodeTypes = { person: PersonNode, marriage: MarriageNode };
@@ -26,11 +42,24 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
-export function TreeChart({ detail, shareToken }: { detail: TreeDetail; shareToken?: string }) {
+export function TreeChart({
+  detail,
+  shareToken,
+  isOwner = false,
+  fullHeight = false,
+}: {
+  detail: TreeDetail;
+  shareToken?: string;
+  isOwner?: boolean;
+  fullHeight?: boolean;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [relationshipsModalOpen, setRelationshipsModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const childrenMap = useMemo(() => computeChildrenMap(detail.relationships), [detail.relationships]);
 
@@ -56,10 +85,7 @@ export function TreeChart({ detail, shareToken }: { detail: TreeDetail; shareTok
   }, [detail.relationships, childrenMap]);
 
   const { nodes, edges } = useMemo(() => {
-    const hiddenIds = new Set<string>();
-    for (const id of collapsedIds) {
-      for (const descendant of getDescendantMemberIds(id, detail.relationships)) hiddenIds.add(descendant);
-    }
+    const hiddenIds = getHiddenByCollapse(collapsedIds, detail.relationships);
     const visibleMembers = detail.members.filter((m) => !hiddenIds.has(m.id));
     const visibleRelationships = detail.relationships.filter(
       (r) => !hiddenIds.has(r.fromMemberId) && !hiddenIds.has(r.toMemberId),
@@ -122,46 +148,122 @@ export function TreeChart({ detail, shareToken }: { detail: TreeDetail; shareTok
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" size="sm" disabled={exporting} />}>
-            <DownloadIcon /> {exporting ? "Mengekspor..." : "Ekspor"}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => exportChart("png")}>
-              <FileImageIcon /> Gambar (PNG)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => exportChart("pdf")}>
-              <FileImageIcon /> PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div ref={wrapperRef} className="bg-background relative h-[75vh] w-full overflow-hidden rounded-lg border">
-        <ReactFlow<TreeNode>
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodeClick={handleNodeClick}
-          nodesConnectable={false}
-          fitView
-          minZoom={0.1}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background gap={20} className="opacity-40" />
-          <Controls />
-          <MiniMap pannable zoomable className="bg-card! border-border! border" nodeColor="var(--primary)" />
-        </ReactFlow>
+      <div
+        ref={wrapperRef}
+        className={
+          "bg-background relative w-full overflow-hidden " +
+          (fullHeight ? "h-screen" : "h-[75vh] rounded-lg border")
+        }
+      >
+        {detail.members.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-6 text-center">
+            <p className="text-muted-foreground max-w-xs text-sm">
+              Belum ada anggota. Tambahkan individu pertama sebagai Pendiri silsilah ini.
+            </p>
+          </div>
+        ) : (
+          <ReactFlow<TreeNode>
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodeClick={handleNodeClick}
+            nodesConnectable={false}
+            fitView
+            minZoom={0.1}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background gap={20} className="opacity-40" />
+            <Controls />
+            <MiniMap pannable zoomable className="bg-card! border-border! border" nodeColor="var(--primary)" />
+          </ReactFlow>
+        )}
 
-        <div className="bg-card/95 border-border pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2 text-xs shadow-md backdrop-blur">
-          <span className="text-primary font-display text-base font-semibold">{detail.stats.total}</span>
-          <span className="text-muted-foreground -ml-3">Anggota</span>
-          <span className="bg-border h-4 w-px" />
-          <StatItem label="Laki-laki" value={detail.stats.male} />
-          <StatItem label="Perempuan" value={detail.stats.female} />
-          <StatItem label="Wafat" value={detail.stats.deceased} />
+        {/* Tree identity pill */}
+        <div className="bg-card/95 border-border absolute top-4 left-4 z-10 flex items-center gap-3 rounded-2xl border px-3 py-2 shadow-md backdrop-blur">
+          {fullHeight && (
+            <Button variant="ghost" size="icon-sm" render={<Link to="/dashboard" />} aria-label="Semua silsilah">
+              <ArrowLeftIcon className="size-4" />
+            </Button>
+          )}
+          <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-xl">
+            <TreesIcon className="size-5" />
+          </div>
+          <div className="min-w-0 leading-tight">
+            <p className="font-display truncate text-sm font-semibold">{detail.tree.name}</p>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">Silsilah Keluarga</p>
+          </div>
+          {isOwner && (
+            <Button variant="ghost" size="icon-sm" onClick={() => setSettingsModalOpen(true)} aria-label="Pengaturan">
+              <SettingsIcon className="size-4" />
+            </Button>
+          )}
         </div>
+
+        {/* Action toolbar */}
+        <div className="bg-card/95 border-border absolute top-19 left-4 z-10 flex items-center gap-1 rounded-2xl border p-1.5 shadow-md backdrop-blur">
+          {detail.canEdit && (
+            <>
+              <AddPersonDialog treeId={detail.tree.id} shareToken={shareToken} />
+              {detail.members.length > 0 && (
+                <RelationshipDialog treeId={detail.tree.id} shareToken={shareToken} members={detail.members} />
+              )}
+              <Separator orientation="vertical" className="mx-0.5 h-5" />
+            </>
+          )}
+          <Button variant="ghost" size="icon-sm" onClick={() => setMembersModalOpen(true)} aria-label="Daftar anggota">
+            <ListIcon className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon-sm" onClick={() => setRelationshipsModalOpen(true)} aria-label="Daftar relasi">
+            <NetworkIcon className="size-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" disabled={exporting} aria-label="Ekspor" />}>
+              <DownloadIcon className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => exportChart("png")}>
+                <FileImageIcon /> Gambar (PNG)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportChart("pdf")}>
+                <FileImageIcon /> PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {isOwner && (
+            <Button size="sm" className="ml-1" onClick={() => setSettingsModalOpen(true)}>
+              <Share2Icon /> Bagikan
+            </Button>
+          )}
+        </div>
+
+        {detail.members.length > 0 && (
+          <div className="bg-card/95 border-border pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2 text-xs shadow-md backdrop-blur">
+            <span className="text-primary font-display text-base font-semibold">{detail.stats.total}</span>
+            <span className="text-muted-foreground -ml-3">Anggota</span>
+            <span className="bg-border h-4 w-px" />
+            <StatItem label="Laki-laki" value={detail.stats.male} />
+            <StatItem label="Perempuan" value={detail.stats.female} />
+            <StatItem label="Wafat" value={detail.stats.deceased} />
+          </div>
+        )}
       </div>
+
+      <MembersModal
+        treeId={detail.tree.id}
+        members={detail.members}
+        canEdit={detail.canEdit}
+        open={membersModalOpen}
+        onOpenChange={setMembersModalOpen}
+      />
+      <RelationshipsModal
+        treeId={detail.tree.id}
+        members={detail.members}
+        relationships={detail.relationships}
+        canEdit={detail.canEdit}
+        open={relationshipsModalOpen}
+        onOpenChange={setRelationshipsModalOpen}
+      />
+      {isOwner && <TreeSettingsModal tree={detail.tree} open={settingsModalOpen} onOpenChange={setSettingsModalOpen} />}
       {detail.canEdit && (
         <EditPersonDialog
           treeId={detail.tree.id}

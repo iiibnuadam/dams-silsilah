@@ -13,6 +13,7 @@ alter table relationships enable row level security;
 alter table share_links enable row level security;
 alter table collaborators enable row level security;
 alter table audit_logs enable row level security;
+alter table app_settings enable row level security;
 
 create policy "profiles are readable by any authenticated user" on profiles
   for select to authenticated using (true);
@@ -92,6 +93,11 @@ create policy "collaborators see their own membership" on collaborators
 create policy "owners read audit logs" on audit_logs
   for select to authenticated using (
     exists (select 1 from trees t where t.id = tree_id and t.owner_id = auth.uid())
+  );
+
+create policy "superadmins manage app settings" on app_settings
+  for all to authenticated using (
+    exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'superadmin')
   );
 
 -- Storage: create the bucket first (Supabase dashboard -> Storage -> New bucket "person-photos", public).

@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -21,6 +22,7 @@ export const relationshipTypeEnum = pgEnum("relationship_type", [
 ]);
 export const spouseStatusEnum = pgEnum("spouse_status", ["married", "divorced"]);
 export const shareAccessEnum = pgEnum("share_access", ["view", "edit"]);
+export const userRoleEnum = pgEnum("user_role", ["user", "superadmin"]);
 
 /** Mirrors `auth.users` — one row per Supabase-authenticated account. */
 export const profiles = pgTable("profiles", {
@@ -28,7 +30,19 @@ export const profiles = pgTable("profiles", {
   email: text("email").notNull(),
   displayName: text("display_name").notNull(),
   avatarUrl: text("avatar_url"),
+  role: userRoleEnum("role").notNull().default("user"),
+  disabled: boolean("disabled").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Singleton row (see APP_SETTINGS_ID in src/lib/app-settings.ts) holding instance-wide config —
+ * currently just whether self-registration is open to the public.
+ */
+export const appSettings = pgTable("app_settings", {
+  id: uuid("id").primaryKey(),
+  registrationOpen: boolean("registration_open").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /** Global biodata for an individual — shared across every tree they appear in. */
@@ -49,6 +63,7 @@ export const trees = pgTable("trees", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
+  coverPhotoUrl: text("cover_photo_url"),
   ownerId: uuid("owner_id").notNull().references(() => profiles.id),
   privacy: treePrivacyEnum("privacy").notNull().default("private"),
   founderPersonId: uuid("founder_person_id").references(() => persons.id),
@@ -92,6 +107,7 @@ export const shareLinks = pgTable("share_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   treeId: uuid("tree_id").notNull().references(() => trees.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
+  slug: text("slug").unique(),
   accessLevel: shareAccessEnum("access_level").notNull().default("view"),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),

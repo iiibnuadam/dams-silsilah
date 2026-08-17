@@ -38,6 +38,7 @@ export const updateTree = createServerFn({ method: "POST" })
       name: z.string().min(1).max(200).optional(),
       description: z.string().max(2000).optional(),
       privacy: z.enum(["private", "public"]).optional(),
+      coverPhotoUrl: z.string().url().optional(),
     }),
   )
   .handler(async ({ data }) => {

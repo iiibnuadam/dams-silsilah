@@ -14,14 +14,12 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as TSlugRouteImport } from './routes/t/$slug'
 import { Route as ShareTokenRouteImport } from './routes/share/$token'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard/admin'
 import { Route as AuthConfirmRouteImport } from './routes/auth/confirm'
 import { Route as TreesTreeIdRouteRouteImport } from './routes/trees/$treeId/route'
 import { Route as TreesTreeIdIndexRouteImport } from './routes/trees/$treeId/index'
-import { Route as TreesTreeIdShareRouteImport } from './routes/trees/$treeId/share'
-import { Route as TreesTreeIdSettingsRouteImport } from './routes/trees/$treeId/settings'
-import { Route as TreesTreeIdRelationshipsRouteImport } from './routes/trees/$treeId/relationships'
-import { Route as TreesTreeIdMembersRouteImport } from './routes/trees/$treeId/members'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -48,10 +46,20 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const TSlugRoute = TSlugRouteImport.update({
+  id: '/t/$slug',
+  path: '/t/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShareTokenRoute = ShareTokenRouteImport.update({
   id: '/share/$token',
   path: '/share/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const AuthConfirmRoute = AuthConfirmRouteImport.update({
   id: '/auth/confirm',
@@ -68,27 +76,6 @@ const TreesTreeIdIndexRoute = TreesTreeIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TreesTreeIdRouteRoute,
 } as any)
-const TreesTreeIdShareRoute = TreesTreeIdShareRouteImport.update({
-  id: '/share',
-  path: '/share',
-  getParentRoute: () => TreesTreeIdRouteRoute,
-} as any)
-const TreesTreeIdSettingsRoute = TreesTreeIdSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => TreesTreeIdRouteRoute,
-} as any)
-const TreesTreeIdRelationshipsRoute =
-  TreesTreeIdRelationshipsRouteImport.update({
-    id: '/relationships',
-    path: '/relationships',
-    getParentRoute: () => TreesTreeIdRouteRoute,
-  } as any)
-const TreesTreeIdMembersRoute = TreesTreeIdMembersRouteImport.update({
-  id: '/members',
-  path: '/members',
-  getParentRoute: () => TreesTreeIdRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,12 +84,10 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/trees/$treeId': typeof TreesTreeIdRouteRouteWithChildren
   '/auth/confirm': typeof AuthConfirmRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/share/$token': typeof ShareTokenRoute
+  '/t/$slug': typeof TSlugRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/trees/$treeId/members': typeof TreesTreeIdMembersRoute
-  '/trees/$treeId/relationships': typeof TreesTreeIdRelationshipsRoute
-  '/trees/$treeId/settings': typeof TreesTreeIdSettingsRoute
-  '/trees/$treeId/share': typeof TreesTreeIdShareRoute
   '/trees/$treeId/': typeof TreesTreeIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,12 +95,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/auth/confirm': typeof AuthConfirmRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/share/$token': typeof ShareTokenRoute
+  '/t/$slug': typeof TSlugRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/trees/$treeId/members': typeof TreesTreeIdMembersRoute
-  '/trees/$treeId/relationships': typeof TreesTreeIdRelationshipsRoute
-  '/trees/$treeId/settings': typeof TreesTreeIdSettingsRoute
-  '/trees/$treeId/share': typeof TreesTreeIdShareRoute
   '/trees/$treeId': typeof TreesTreeIdIndexRoute
 }
 export interface FileRoutesById {
@@ -126,12 +109,10 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/trees/$treeId': typeof TreesTreeIdRouteRouteWithChildren
   '/auth/confirm': typeof AuthConfirmRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/share/$token': typeof ShareTokenRoute
+  '/t/$slug': typeof TSlugRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/trees/$treeId/members': typeof TreesTreeIdMembersRoute
-  '/trees/$treeId/relationships': typeof TreesTreeIdRelationshipsRoute
-  '/trees/$treeId/settings': typeof TreesTreeIdSettingsRoute
-  '/trees/$treeId/share': typeof TreesTreeIdShareRoute
   '/trees/$treeId/': typeof TreesTreeIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,12 +124,10 @@ export interface FileRouteTypes {
     | '/register'
     | '/trees/$treeId'
     | '/auth/confirm'
+    | '/dashboard/admin'
     | '/share/$token'
+    | '/t/$slug'
     | '/dashboard/'
-    | '/trees/$treeId/members'
-    | '/trees/$treeId/relationships'
-    | '/trees/$treeId/settings'
-    | '/trees/$treeId/share'
     | '/trees/$treeId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -156,12 +135,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/auth/confirm'
+    | '/dashboard/admin'
     | '/share/$token'
+    | '/t/$slug'
     | '/dashboard'
-    | '/trees/$treeId/members'
-    | '/trees/$treeId/relationships'
-    | '/trees/$treeId/settings'
-    | '/trees/$treeId/share'
     | '/trees/$treeId'
   id:
     | '__root__'
@@ -171,12 +148,10 @@ export interface FileRouteTypes {
     | '/register'
     | '/trees/$treeId'
     | '/auth/confirm'
+    | '/dashboard/admin'
     | '/share/$token'
+    | '/t/$slug'
     | '/dashboard/'
-    | '/trees/$treeId/members'
-    | '/trees/$treeId/relationships'
-    | '/trees/$treeId/settings'
-    | '/trees/$treeId/share'
     | '/trees/$treeId/'
   fileRoutesById: FileRoutesById
 }
@@ -188,6 +163,7 @@ export interface RootRouteChildren {
   TreesTreeIdRouteRoute: typeof TreesTreeIdRouteRouteWithChildren
   AuthConfirmRoute: typeof AuthConfirmRoute
   ShareTokenRoute: typeof ShareTokenRoute
+  TSlugRoute: typeof TSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -227,12 +203,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/t/$slug': {
+      id: '/t/$slug'
+      path: '/t/$slug'
+      fullPath: '/t/$slug'
+      preLoaderRoute: typeof TSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/share/$token': {
       id: '/share/$token'
       path: '/share/$token'
       fullPath: '/share/$token'
       preLoaderRoute: typeof ShareTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/auth/confirm': {
       id: '/auth/confirm'
@@ -255,42 +245,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreesTreeIdIndexRouteImport
       parentRoute: typeof TreesTreeIdRouteRoute
     }
-    '/trees/$treeId/share': {
-      id: '/trees/$treeId/share'
-      path: '/share'
-      fullPath: '/trees/$treeId/share'
-      preLoaderRoute: typeof TreesTreeIdShareRouteImport
-      parentRoute: typeof TreesTreeIdRouteRoute
-    }
-    '/trees/$treeId/settings': {
-      id: '/trees/$treeId/settings'
-      path: '/settings'
-      fullPath: '/trees/$treeId/settings'
-      preLoaderRoute: typeof TreesTreeIdSettingsRouteImport
-      parentRoute: typeof TreesTreeIdRouteRoute
-    }
-    '/trees/$treeId/relationships': {
-      id: '/trees/$treeId/relationships'
-      path: '/relationships'
-      fullPath: '/trees/$treeId/relationships'
-      preLoaderRoute: typeof TreesTreeIdRelationshipsRouteImport
-      parentRoute: typeof TreesTreeIdRouteRoute
-    }
-    '/trees/$treeId/members': {
-      id: '/trees/$treeId/members'
-      path: '/members'
-      fullPath: '/trees/$treeId/members'
-      preLoaderRoute: typeof TreesTreeIdMembersRouteImport
-      parentRoute: typeof TreesTreeIdRouteRoute
-    }
   }
 }
 
 interface DashboardRouteRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -299,18 +263,10 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 )
 
 interface TreesTreeIdRouteRouteChildren {
-  TreesTreeIdMembersRoute: typeof TreesTreeIdMembersRoute
-  TreesTreeIdRelationshipsRoute: typeof TreesTreeIdRelationshipsRoute
-  TreesTreeIdSettingsRoute: typeof TreesTreeIdSettingsRoute
-  TreesTreeIdShareRoute: typeof TreesTreeIdShareRoute
   TreesTreeIdIndexRoute: typeof TreesTreeIdIndexRoute
 }
 
 const TreesTreeIdRouteRouteChildren: TreesTreeIdRouteRouteChildren = {
-  TreesTreeIdMembersRoute: TreesTreeIdMembersRoute,
-  TreesTreeIdRelationshipsRoute: TreesTreeIdRelationshipsRoute,
-  TreesTreeIdSettingsRoute: TreesTreeIdSettingsRoute,
-  TreesTreeIdShareRoute: TreesTreeIdShareRoute,
   TreesTreeIdIndexRoute: TreesTreeIdIndexRoute,
 }
 
@@ -325,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   TreesTreeIdRouteRoute: TreesTreeIdRouteRouteWithChildren,
   AuthConfirmRoute: AuthConfirmRoute,
   ShareTokenRoute: ShareTokenRoute,
+  TSlugRoute: TSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

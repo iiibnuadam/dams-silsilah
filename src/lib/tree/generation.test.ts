@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeGenerations, getDescendantMemberIds, wouldCreateCycle, type RelationshipEdge } from "./generation.ts";
+import {
+  computeGenerations,
+  getDescendantMemberIds,
+  getHiddenByCollapse,
+  wouldCreateCycle,
+  type RelationshipEdge,
+} from "./generation.ts";
 
 // Founder (F) -> Child (C) -> Grandchild (G) -> GreatGrandchild (GG), C married to Spouse (S).
 const edges: RelationshipEdge[] = [
@@ -60,4 +66,30 @@ test("getDescendantMemberIds collects the whole subtree below a member, spouse e
 
 test("getDescendantMemberIds returns empty set for a leaf member", () => {
   assert.equal(getDescendantMemberIds("GG", edges).size, 0);
+});
+
+test("getHiddenByCollapse hides a hidden member's spouse when the spouse has no blood parent of their own", () => {
+  const hidden = getHiddenByCollapse(["F"], edges);
+  assert.deepEqual([...hidden].sort(), ["C", "G", "GG", "S"]);
+});
+
+test("getHiddenByCollapse keeps a spouse visible if they have their own blood parent elsewhere", () => {
+  const cousinEdges: RelationshipEdge[] = [
+    { fromMemberId: "F1", toMemberId: "C1", type: "biological_child" },
+    { fromMemberId: "F2", toMemberId: "X", type: "biological_child" },
+    { fromMemberId: "C1", toMemberId: "X", type: "spouse" },
+  ];
+  const hidden = getHiddenByCollapse(["F1"], cousinEdges);
+  assert.deepEqual([...hidden].sort(), ["C1"]);
+  assert.equal(hidden.has("X"), false, "X has their own blood parent (F2), so stays visible");
+});
+
+test("getHiddenByCollapse cascades to a hidden spouse's own children", () => {
+  const remarriageEdges: RelationshipEdge[] = [
+    { fromMemberId: "F", toMemberId: "C", type: "biological_child" },
+    { fromMemberId: "C", toMemberId: "S", type: "spouse" },
+    { fromMemberId: "S", toMemberId: "StepChild", type: "child_in_law" },
+  ];
+  const hidden = getHiddenByCollapse(["F"], remarriageEdges);
+  assert.deepEqual([...hidden].sort(), ["C", "S", "StepChild"]);
 });

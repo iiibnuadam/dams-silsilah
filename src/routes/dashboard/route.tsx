@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect, useRouter } from "@tanstack/react-router";
+import { ShieldIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { getSessionUser, logoutUser } from "@/server/auth";
@@ -29,6 +30,11 @@ function DashboardLayout() {
             Silsilah Keluarga
           </Link>
           <div className="flex items-center gap-3">
+            {user.role === "superadmin" && (
+              <Button variant="ghost" size="sm" render={<Link to="/dashboard/admin" />}>
+                <ShieldIcon /> Admin
+              </Button>
+            )}
             <span className="text-muted-foreground text-sm">{user.email}</span>
             <ModeToggle />
             <Button variant="outline" size="sm" onClick={handleLogout}>

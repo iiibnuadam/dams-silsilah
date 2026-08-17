@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { MailCheckIcon } from "lucide-react";
+import { LockIcon, MailCheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { registerUser, loginUser } from "@/server/auth";
+import { registerUser, loginUser, getRegistrationStatus } from "@/server/auth";
 
 export const Route = createFileRoute("/register")({
+  loader: () => getRegistrationStatus(),
   component: RegisterPage,
 });
 
 function RegisterPage() {
+  const { open } = Route.useLoaderData();
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,6 +39,27 @@ function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="items-center text-center">
+            <LockIcon className="text-muted-foreground mb-2 size-10" />
+            <CardTitle>Pendaftaran Ditutup</CardTitle>
+            <CardDescription>
+              Pendaftaran akun baru sedang tidak dibuka untuk umum. Hubungi admin Anda untuk mendapatkan akses.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" variant="outline" render={<Link to="/login" />}>
+              Ke Halaman Masuk
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (awaitingConfirmation) {

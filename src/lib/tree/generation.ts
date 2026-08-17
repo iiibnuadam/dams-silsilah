@@ -123,6 +123,43 @@ export function getDescendantMemberIds(memberId: string, edges: RelationshipEdge
 }
 
 /**
+ * Every member that should disappear when the given members' branches are collapsed: their
+ * descendants, plus — for each hidden member — their spouse too, as long as that spouse has no
+ * blood parent of their own in the tree (i.e. they only appear here via this marriage, so once
+ * their partner is hidden they'd otherwise be left floating with no visible connection). A
+ * spouse who's independently someone's blood descendant (e.g. a cousin marriage) stays visible,
+ * since they still have their own place in the tree. Cascades: a hidden spouse's own descendants
+ * (and their spouses, recursively) are hidden too.
+ */
+export function getHiddenByCollapse(collapsedIds: Iterable<string>, edges: RelationshipEdge[]): Set<string> {
+  const childrenOf = computeChildrenMap(edges);
+  const spouseOf = new Map<string, string>();
+  const hasBloodParent = new Set<string>();
+  for (const edge of edges) {
+    if (DESCENT_TYPES.has(edge.type)) {
+      hasBloodParent.add(edge.toMemberId);
+    } else if (edge.type === "spouse") {
+      spouseOf.set(edge.fromMemberId, edge.toMemberId);
+      spouseOf.set(edge.toMemberId, edge.fromMemberId);
+    }
+  }
+
+  const hidden = new Set<string>();
+  function hide(memberId: string) {
+    if (hidden.has(memberId)) return;
+    hidden.add(memberId);
+    for (const child of childrenOf.get(memberId) ?? []) hide(child);
+    const spouse = spouseOf.get(memberId);
+    if (spouse && !hasBloodParent.has(spouse)) hide(spouse);
+  }
+
+  for (const collapsedId of collapsedIds) {
+    for (const child of childrenOf.get(collapsedId) ?? []) hide(child);
+  }
+  return hidden;
+}
+
+/**
  * Returns true if adding a child edge (parentMemberId -> childMemberId) would create a cycle,
  * i.e. childMemberId is already an ancestor of parentMemberId via existing child edges.
  */
