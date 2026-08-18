@@ -13,7 +13,7 @@
     "preview": "vite preview",
     "start": "node ./.output/server/index.mjs",
     "start:deno": "deno run --allow-all .output/server/index.mjs",
-    "test": "tsx --test src/**/*.test.ts",
+    "test": "find src -name '*.test.ts' -print0 | xargs -0 tsx --test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

@@ -13,6 +13,8 @@ const personInput = z.object({
   photoUrl: z.string().url().optional(),
   birthDate: z.string().optional(),
   deathDate: z.string().optional(),
+  occupation: z.string().max(200).optional(),
+  phone: z.string().max(40).optional(),
   notes: z.string().max(2000).optional(),
 });
 

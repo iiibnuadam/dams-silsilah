@@ -53,6 +53,8 @@ export const persons = pgTable("persons", {
   gender: genderEnum("gender").notNull(),
   birthDate: text("birth_date"),
   deathDate: text("death_date"),
+  occupation: text("occupation"),
+  phone: text("phone"),
   notes: text("notes"),
   createdBy: uuid("created_by").notNull().references(() => profiles.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

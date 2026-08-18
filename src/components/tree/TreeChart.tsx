@@ -3,18 +3,8 @@ import { Background, Controls, MiniMap, ReactFlow, type NodeMouseHandler } from 
 import { Link } from "@tanstack/react-router";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
-import {
-  ArrowLeftIcon,
-  DownloadIcon,
-  FileImageIcon,
-  ListIcon,
-  NetworkIcon,
-  Share2Icon,
-  SettingsIcon,
-  TreesIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, DownloadIcon, FileImageIcon, ListIcon, Share2Icon, SettingsIcon, TreesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +14,8 @@ import {
 import { PersonNode } from "@/components/tree/PersonNode";
 import { MarriageNode } from "@/components/tree/MarriageNode";
 import { EditPersonDialog } from "@/components/tree/EditPersonDialog";
-import { MembersModal } from "@/components/tree/MembersModal";
-import { RelationshipsModal } from "@/components/tree/RelationshipsModal";
+import { FamilyDataModal } from "@/components/tree/FamilyDataModal";
 import { TreeSettingsModal } from "@/components/tree/TreeSettingsModal";
-import { AddPersonDialog } from "@/components/tree/AddPersonDialog";
-import { RelationshipDialog } from "@/components/tree/RelationshipDialog";
 import { layoutTree, type TreeNode } from "@/lib/tree/layout";
 import { computeChildrenMap, getHiddenByCollapse } from "@/lib/tree/generation";
 import type { TreeDetail } from "@/lib/tree/detail";
@@ -57,8 +44,7 @@ export function TreeChart({
   const [exporting, setExporting] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
-  const [membersModalOpen, setMembersModalOpen] = useState(false);
-  const [relationshipsModalOpen, setRelationshipsModalOpen] = useState(false);
+  const [dataModalOpen, setDataModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const childrenMap = useMemo(() => computeChildrenMap(detail.relationships), [detail.relationships]);
@@ -201,20 +187,8 @@ export function TreeChart({
 
         {/* Action toolbar */}
         <div className="bg-card/95 border-border absolute top-19 left-4 z-10 flex items-center gap-1 rounded-2xl border p-1.5 shadow-md backdrop-blur">
-          {detail.canEdit && (
-            <>
-              <AddPersonDialog treeId={detail.tree.id} shareToken={shareToken} />
-              {detail.members.length > 0 && (
-                <RelationshipDialog treeId={detail.tree.id} shareToken={shareToken} members={detail.members} />
-              )}
-              <Separator orientation="vertical" className="mx-0.5 h-5" />
-            </>
-          )}
-          <Button variant="ghost" size="icon-sm" onClick={() => setMembersModalOpen(true)} aria-label="Daftar anggota">
+          <Button variant="ghost" size="icon-sm" onClick={() => setDataModalOpen(true)} aria-label="Daftar keluarga">
             <ListIcon className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon-sm" onClick={() => setRelationshipsModalOpen(true)} aria-label="Daftar relasi">
-            <NetworkIcon className="size-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" disabled={exporting} aria-label="Ekspor" />}>
@@ -248,20 +222,15 @@ export function TreeChart({
         )}
       </div>
 
-      <MembersModal
+      <FamilyDataModal
         treeId={detail.tree.id}
-        members={detail.members}
-        canEdit={detail.canEdit}
-        open={membersModalOpen}
-        onOpenChange={setMembersModalOpen}
-      />
-      <RelationshipsModal
-        treeId={detail.tree.id}
+        shareToken={shareToken}
+        tree={detail.tree}
         members={detail.members}
         relationships={detail.relationships}
         canEdit={detail.canEdit}
-        open={relationshipsModalOpen}
-        onOpenChange={setRelationshipsModalOpen}
+        open={dataModalOpen}
+        onOpenChange={setDataModalOpen}
       />
       {isOwner && <TreeSettingsModal tree={detail.tree} open={settingsModalOpen} onOpenChange={setSettingsModalOpen} />}
       {detail.canEdit && (

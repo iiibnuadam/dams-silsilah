@@ -28,6 +28,8 @@ export function EditPersonDialog({
   const [gender, setGender] = useState<"male" | "female">("male");
   const [birthDate, setBirthDate] = useState("");
   const [deathDate, setDeathDate] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,8 @@ export function EditPersonDialog({
     setGender(member.person.gender);
     setBirthDate(member.person.birthDate ?? "");
     setDeathDate(member.person.deathDate ?? "");
+    setOccupation(member.person.occupation ?? "");
+    setPhone(member.person.phone ?? "");
     setNotes(member.person.notes ?? "");
     setPhotoFile(null);
     setError(null);
@@ -67,6 +71,8 @@ export function EditPersonDialog({
           photoUrl,
           birthDate: birthDate || undefined,
           deathDate: deathDate || undefined,
+          occupation: occupation || undefined,
+          phone: phone || undefined,
           notes: notes || undefined,
         },
       });
@@ -112,6 +118,16 @@ export function EditPersonDialog({
               <div className="w-full">
                 <FieldLabel htmlFor="edit-deathDate">Tanggal Wafat</FieldLabel>
                 <Input id="edit-deathDate" type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} />
+              </div>
+            </Field>
+            <Field orientation="responsive">
+              <div className="w-full">
+                <FieldLabel htmlFor="edit-occupation">Pekerjaan</FieldLabel>
+                <Input id="edit-occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+              </div>
+              <div className="w-full">
+                <FieldLabel htmlFor="edit-phone">Nomor HP</FieldLabel>
+                <Input id="edit-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
             </Field>
             <Field>

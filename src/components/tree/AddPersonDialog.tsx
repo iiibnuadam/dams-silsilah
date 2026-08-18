@@ -41,6 +41,8 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
   const [gender, setGender] = useState<"male" | "female">("male");
   const [birthDate, setBirthDate] = useState("");
   const [deathDate, setDeathDate] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
@@ -72,6 +74,8 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
     setGender("male");
     setBirthDate("");
     setDeathDate("");
+    setOccupation("");
+    setPhone("");
     setNotes("");
     setPhotoFile(null);
     setError(null);
@@ -106,6 +110,8 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
               photoUrl,
               birthDate: birthDate || undefined,
               deathDate: deathDate || undefined,
+              occupation: occupation || undefined,
+              phone: phone || undefined,
               notes: notes || undefined,
             },
           },
@@ -194,6 +200,16 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
                   <div className="w-full">
                     <FieldLabel htmlFor="deathDate">Tanggal Wafat</FieldLabel>
                     <Input id="deathDate" type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} />
+                  </div>
+                </Field>
+                <Field orientation="responsive">
+                  <div className="w-full">
+                    <FieldLabel htmlFor="occupation">Pekerjaan</FieldLabel>
+                    <Input id="occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+                  </div>
+                  <div className="w-full">
+                    <FieldLabel htmlFor="phone">Nomor HP</FieldLabel>
+                    <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
                   </div>
                 </Field>
                 <Field>
