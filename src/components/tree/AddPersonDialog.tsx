@@ -112,6 +112,7 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
               gender,
               photoUrl,
               birthDate: birthDate || undefined,
+              deceased: isDeceased,
               deathDate: isDeceased ? deathDate || undefined : undefined,
               occupation: occupation || undefined,
               phone: phone || undefined,

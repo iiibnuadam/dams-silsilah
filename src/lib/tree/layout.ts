@@ -77,9 +77,8 @@ export function layoutTree(detail: Pick<TreeDetail, "members" | "relationships">
   for (const [unitId, memberIds] of unitMembers) {
     graph.setNode(unitId, { width: memberIds.length === 2 ? COUPLE_WIDTH : NODE_WIDTH, height: NODE_HEIGHT });
   }
-  // A member's own parent unit — used below to resolve which side of a couple's shared slot each
-  // spouse belongs on. A member has at most one descent edge pointing at them (a couple's child
-  // always has a single recorded parent edge; the other parent is implied by the marriage node).
+  // A member's own parent unit — a couple's child always has a single recorded descent edge (the
+  // other parent is implied by the marriage node), so this is at most one entry per member.
   const parentUnitOfMember = new Map<string, string>();
   for (const rel of detail.relationships) {
     if (!DESCENT_TYPES.has(rel.type)) continue;
@@ -89,25 +88,55 @@ export function layoutTree(detail: Pick<TreeDetail, "members" | "relationships">
 
   dagre.layout(graph);
 
-  // When each spouse in a couple has their *own* distinct parent branch (e.g. both sides of the
-  // marriage are recorded — "besan"), always slotting them left-to-right in relationship-record
-  // order can put a spouse on the opposite side from their own parents, crossing the two descent
-  // lines into an X. Resolved here by orienting the couple's left/right slot to match wherever
-  // dagre actually placed each side's parent unit, instead of the arbitrary from/to order.
+  const memberById = new Map(detail.members.map((m) => [m.id, m]));
+
+  // Couples always slot male-left, female-right, regardless of which side has a recorded parent
+  // branch — a consistent gender convention throughout the chart, not a per-couple heuristic.
   const coupleOrder = new Map<string, [string, string]>();
   for (const [unitId, memberIds] of unitMembers) {
     if (memberIds.length !== 2) continue;
     const [a, b] = memberIds as [string, string];
-    const parentA = parentUnitOfMember.get(a);
-    const parentB = parentUnitOfMember.get(b);
-    if (parentA && parentB && parentA !== parentB) {
-      coupleOrder.set(unitId, graph.node(parentA).x <= graph.node(parentB).x ? [a, b] : [b, a]);
-    } else {
-      coupleOrder.set(unitId, [a, b]);
-    }
+    const genderA = memberById.get(a)?.person.gender;
+    const genderB = memberById.get(b)?.person.gender;
+    coupleOrder.set(unitId, genderA === "female" && genderB === "male" ? [b, a] : [a, b]);
   }
 
-  const memberById = new Map(detail.members.map((m) => [m.id, m]));
+  // When each spouse in a couple has their *own* distinct parent branch (both sides of the
+  // marriage recorded — "besan"), dagre positions those two parent units without any knowledge of
+  // which specific half of the child couple each one feeds — it only sees "unit -> unit" edges.
+  // If it happens to place them the opposite way around from the fixed gender slots above, the
+  // two descent lines cross into an X. Detected and corrected here by swapping each parent's
+  // entire subtree (as a rigid block, preserving its own internal layout) so the parent feeding
+  // the left-slotted spouse ends up left of the one feeding the right-slotted spouse.
+  function collectSubtreeUnitIds(rootUnitId: string): string[] {
+    const visited = new Set([rootUnitId]);
+    const stack = [rootUnitId];
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      for (const next of graph.successors(current) ?? []) {
+        if (!visited.has(next)) {
+          visited.add(next);
+          stack.push(next);
+        }
+      }
+    }
+    return [...visited];
+  }
+  for (const [unitId] of unitMembers) {
+    const [leftMemberId, rightMemberId] = coupleOrder.get(unitId) ?? [];
+    if (!leftMemberId || !rightMemberId) continue;
+    const parentOfLeft = parentUnitOfMember.get(leftMemberId);
+    const parentOfRight = parentUnitOfMember.get(rightMemberId);
+    if (!parentOfLeft || !parentOfRight || parentOfLeft === parentOfRight) continue;
+    const leftParentNode = graph.node(parentOfLeft);
+    const rightParentNode = graph.node(parentOfRight);
+    if (leftParentNode.x <= rightParentNode.x) continue;
+
+    const delta = rightParentNode.x - leftParentNode.x;
+    for (const id of collectSubtreeUnitIds(parentOfLeft)) graph.node(id).x += delta;
+    for (const id of collectSubtreeUnitIds(parentOfRight)) graph.node(id).x -= delta;
+  }
+
   // Same generation always means the same row, guaranteeing spouse pairs line up horizontally
   // regardless of what dagre's ranker did — dagre's y is only a fallback for members not yet
   // connected to the founder (generation -1), which have no reliable row of their own.

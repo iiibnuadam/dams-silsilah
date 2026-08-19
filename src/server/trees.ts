@@ -76,6 +76,7 @@ const newOrExistingPerson = z.union([
     gender: z.enum(["male", "female"]),
     photoUrl: z.string().url().optional(),
     birthDate: z.string().optional(),
+    deceased: z.boolean().optional(),
     deathDate: z.string().optional(),
     occupation: z.string().max(200).optional(),
     phone: z.string().max(40).optional(),

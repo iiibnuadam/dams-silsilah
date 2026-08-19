@@ -53,7 +53,7 @@ export async function loadTreeDetail(access: TreeAccess) {
   }
 
   const total = members.length;
-  const deceased = members.filter((m) => m.person.deathDate).length;
+  const deceased = members.filter((m) => m.person.deceased).length;
   const male = members.filter((m) => m.person.gender === "male").length;
   const female = members.filter((m) => m.person.gender === "female").length;
   const byGeneration: Record<number, number> = {};

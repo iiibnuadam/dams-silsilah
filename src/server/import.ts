@@ -44,6 +44,7 @@ export const bulkImportPersons = createServerFn({ method: "POST" })
             fullName: row.fullName,
             gender: row.gender,
             birthDate: row.birthDate || undefined,
+            deceased: Boolean(row.deathDate),
             deathDate: row.deathDate || undefined,
             occupation: row.occupation || undefined,
             phone: row.phone || undefined,

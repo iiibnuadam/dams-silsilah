@@ -1,0 +1,1 @@
+ALTER TABLE "persons" ADD COLUMN "deceased" boolean DEFAULT false NOT NULL;

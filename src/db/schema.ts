@@ -52,6 +52,9 @@ export const persons = pgTable("persons", {
   photoUrl: text("photo_url"),
   gender: genderEnum("gender").notNull(),
   birthDate: text("birth_date"),
+  // Tracked separately from deathDate: someone can be known to have passed away without the exact
+  // date being known, so "deceased" can't just be derived from deathDate being non-null.
+  deceased: boolean("deceased").notNull().default(false),
   deathDate: text("death_date"),
   occupation: text("occupation"),
   phone: text("phone"),

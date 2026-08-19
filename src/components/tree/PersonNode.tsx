@@ -16,7 +16,7 @@ const handleStyle = "border-none! size-0! bg-transparent!";
 
 export function PersonNode({ data }: NodeProps<Node<PersonNodeData>>) {
   const { person, roleLabel, generation, hasChildren, hasSpouse, collapsed, onToggleCollapse } = data;
-  const deceased = Boolean(person.deathDate);
+  const deceased = person.deceased;
   const tone = person.gender === "female" ? "female" : "male";
   // Couples get one shared collapse toggle on the spousal connector (SpouseEdge); this node's
   // own toggle only appears when there's no partner to hang that shared toggle off of.

@@ -12,6 +12,7 @@ const personInput = z.object({
   gender: z.enum(["male", "female"]),
   photoUrl: z.string().url().optional(),
   birthDate: z.string().optional(),
+  deceased: z.boolean().optional(),
   // Nullable (not just optional) so an edit can explicitly clear a death date — e.g. correcting
   // a mistaken "sudah meninggal" toggle — rather than the field being silently skipped on update.
   deathDate: z.string().nullable().optional(),

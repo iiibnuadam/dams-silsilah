@@ -44,7 +44,7 @@ export function EditPersonDialog({
     setFullName(member.person.fullName);
     setGender(member.person.gender);
     setBirthDate(member.person.birthDate ?? "");
-    setIsDeceased(Boolean(member.person.deathDate));
+    setIsDeceased(member.person.deceased);
     setDeathDate(member.person.deathDate ?? "");
     setOccupation(member.person.occupation ?? "");
     setPhone(member.person.phone ?? "");
@@ -83,6 +83,7 @@ export function EditPersonDialog({
           gender,
           photoUrl,
           birthDate: birthDate || undefined,
+          deceased: isDeceased,
           deathDate: isDeceased ? deathDate || undefined : null,
           occupation: occupation || undefined,
           phone: phone || undefined,
