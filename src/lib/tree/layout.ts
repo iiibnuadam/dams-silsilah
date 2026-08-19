@@ -77,12 +77,35 @@ export function layoutTree(detail: Pick<TreeDetail, "members" | "relationships">
   for (const [unitId, memberIds] of unitMembers) {
     graph.setNode(unitId, { width: memberIds.length === 2 ? COUPLE_WIDTH : NODE_WIDTH, height: NODE_HEIGHT });
   }
+  // A member's own parent unit — used below to resolve which side of a couple's shared slot each
+  // spouse belongs on. A member has at most one descent edge pointing at them (a couple's child
+  // always has a single recorded parent edge; the other parent is implied by the marriage node).
+  const parentUnitOfMember = new Map<string, string>();
   for (const rel of detail.relationships) {
     if (!DESCENT_TYPES.has(rel.type)) continue;
     graph.setEdge(unitIdOf.get(rel.fromMemberId)!, unitIdOf.get(rel.toMemberId)!);
+    parentUnitOfMember.set(rel.toMemberId, unitIdOf.get(rel.fromMemberId)!);
   }
 
   dagre.layout(graph);
+
+  // When each spouse in a couple has their *own* distinct parent branch (e.g. both sides of the
+  // marriage are recorded — "besan"), always slotting them left-to-right in relationship-record
+  // order can put a spouse on the opposite side from their own parents, crossing the two descent
+  // lines into an X. Resolved here by orienting the couple's left/right slot to match wherever
+  // dagre actually placed each side's parent unit, instead of the arbitrary from/to order.
+  const coupleOrder = new Map<string, [string, string]>();
+  for (const [unitId, memberIds] of unitMembers) {
+    if (memberIds.length !== 2) continue;
+    const [a, b] = memberIds as [string, string];
+    const parentA = parentUnitOfMember.get(a);
+    const parentB = parentUnitOfMember.get(b);
+    if (parentA && parentB && parentA !== parentB) {
+      coupleOrder.set(unitId, graph.node(parentA).x <= graph.node(parentB).x ? [a, b] : [b, a]);
+    } else {
+      coupleOrder.set(unitId, [a, b]);
+    }
+  }
 
   const memberById = new Map(detail.members.map((m) => [m.id, m]));
   // Same generation always means the same row, guaranteeing spouse pairs line up horizontally
@@ -94,18 +117,17 @@ export function layoutTree(detail: Pick<TreeDetail, "members" | "relationships">
     return member.generation !== null && member.generation >= 0 ? member.generation * ROW_HEIGHT : unitPos.y - NODE_HEIGHT / 2;
   }
 
-  // Split each couple's double-wide slot into its two members' actual x positions — left/right
-  // order follows the relationship's own from/to order (arbitrary but stable; not assumed from
-  // gender). A singleton just takes its unit's own center.
+  // Split each couple's double-wide slot into its two members' actual x positions, using the
+  // left/right order resolved above. A singleton just takes its unit's own center.
   const memberX = new Map<string, number>();
   for (const [unitId, memberIds] of unitMembers) {
     const unitX = graph.node(unitId).x;
     if (memberIds.length === 1) {
       memberX.set(memberIds[0]!, unitX);
     } else {
-      const [leftId, rightId] = memberIds;
-      memberX.set(leftId!, unitX - COUPLE_WIDTH / 2 + NODE_WIDTH / 2);
-      memberX.set(rightId!, unitX + COUPLE_WIDTH / 2 - NODE_WIDTH / 2);
+      const [leftId, rightId] = coupleOrder.get(unitId)!;
+      memberX.set(leftId, unitX - COUPLE_WIDTH / 2 + NODE_WIDTH / 2);
+      memberX.set(rightId, unitX + COUPLE_WIDTH / 2 - NODE_WIDTH / 2);
     }
   }
 
@@ -141,14 +163,17 @@ export function layoutTree(detail: Pick<TreeDetail, "members" | "relationships">
   });
 
   // A straight line directly between the couple's own left/right handles — the marriage node
-  // plays no part in this edge, it just happens to visually sit on top of its midpoint.
+  // plays no part in this edge, it just happens to visually sit on top of its midpoint. Source is
+  // whichever member actually ended up on the left after the crossing-avoidance reorder above
+  // (not necessarily the relationship's own `from`), so the handles always point the right way.
   const coupleEdges: Edge[] = spouseEdges.map((rel) => {
     const divorced = rel.status === "divorced";
+    const [leftId, rightId] = coupleOrder.get(`couple-${rel.id}`)!;
     return {
       id: rel.id,
-      source: rel.fromMemberId,
+      source: leftId,
       sourceHandle: "right",
-      target: rel.toMemberId,
+      target: rightId,
       targetHandle: "left",
       type: "straight",
       style: divorced
