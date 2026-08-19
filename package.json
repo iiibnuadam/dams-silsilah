@@ -46,7 +46,7 @@
   "devDependencies": {
     "@base-ui/react": "^1.0.0",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/devtools-vite": "^0.4.1",
+    "@tanstack/devtools-vite": "^0.8.3",
     "@tanstack/react-devtools": "^0.9.1",
     "@tanstack/react-router-devtools": "^1.145.7",
     "@types/node": "^25.0.3",
