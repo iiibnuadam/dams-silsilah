@@ -1,14 +1,8 @@
 import type { ReactNode } from "react";
-import {
-  Outlet,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-  Link,
-} from "@tanstack/react-router";
+import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
+import { NotFound } from "@/components/not-found";
 import "@/styles.css";
 
 const themeScript = `
@@ -61,11 +55,5 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 }
 
 function NotFoundComponent() {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold">404</h1>
-      <p className="text-muted-foreground">Page not found</p>
-      <Button render={<Link to="/">Go Home</Link>} />
-    </div>
-  );
+  return <NotFound />;
 }

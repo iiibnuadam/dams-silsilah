@@ -43,7 +43,7 @@ function AdminPage() {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-semibold">Admin</h1>
+        <h1 className="font-display text-3xl font-medium">Admin</h1>
         <p className="text-muted-foreground text-sm">Kelola pendaftaran akun dan pengguna aplikasi.</p>
       </div>
 

@@ -1,96 +1,103 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/nunito-sans";
-@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/inter";
 @import "@xyflow/react/dist/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
 /*
- * "Family archive" palette: warm parchment paper + deep pine-ink + brass,
- * evoking an heirloom ledger rather than a generic SaaS dashboard.
+ * Geniestudio theme (see DESIGN.md): pale sky-blue canvas, near-monochrome ink/charcoal
+ * hierarchy, a single vivid iris-blue accent, and pastel washes reserved for tile variety.
+ * DESIGN.md only specifies a light theme; dark values below are derived from the same palette
+ * family (charcoal becomes the dark surface, ink becomes the dark background) rather than
+ * given, since the app's existing light/dark toggle still needs both.
  */
 :root {
-  --background: oklch(0.97 0.014 89);
-  --foreground: oklch(0.24 0.03 145);
-  --card: oklch(0.99 0.008 89);
-  --card-foreground: oklch(0.24 0.03 145);
-  --popover: oklch(0.99 0.008 89);
-  --popover-foreground: oklch(0.24 0.03 145);
-  --primary: oklch(0.42 0.07 150);
-  --primary-foreground: oklch(0.98 0.012 89);
-  --secondary: oklch(0.93 0.022 85);
-  --secondary-foreground: oklch(0.3 0.04 145);
-  --muted: oklch(0.93 0.018 85);
-  --muted-foreground: oklch(0.48 0.03 130);
-  --accent: oklch(0.68 0.11 75);
-  --accent-foreground: oklch(0.24 0.04 75);
-  --destructive: oklch(0.5 0.15 33);
-  --male: oklch(0.5 0.14 258);
-  --male-foreground: oklch(0.97 0.02 258);
-  --female: oklch(0.62 0.18 12);
-  --female-foreground: oklch(0.98 0.02 12);
-  --border: oklch(0.87 0.025 85);
-  --input: oklch(0.87 0.025 85);
-  --ring: oklch(0.6 0.06 150);
-  --chart-1: oklch(0.42 0.07 150);
-  --chart-2: oklch(0.68 0.11 75);
-  --chart-3: oklch(0.55 0.09 200);
-  --chart-4: oklch(0.6 0.13 33);
-  --chart-5: oklch(0.62 0.07 300);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.95 0.016 87);
-  --sidebar-foreground: oklch(0.24 0.03 145);
-  --sidebar-primary: oklch(0.42 0.07 150);
-  --sidebar-primary-foreground: oklch(0.98 0.012 89);
-  --sidebar-accent: oklch(0.93 0.022 85);
-  --sidebar-accent-foreground: oklch(0.3 0.04 145);
-  --sidebar-border: oklch(0.87 0.025 85);
-  --sidebar-ring: oklch(0.6 0.06 150);
+  --background: #ebf5ff;
+  --foreground: #0a0d12;
+  --card: #fafdff;
+  --card-foreground: #0a0d12;
+  --popover: #ffffff;
+  --popover-foreground: #0a0d12;
+  --primary: #181d27;
+  --primary-foreground: #ffffff;
+  --secondary: #f6f7f8;
+  --secondary-foreground: #181d27;
+  --muted: #f6f7f8;
+  --muted-foreground: #93979f;
+  --accent: #cce7ff;
+  --accent-foreground: #0069e0;
+  --destructive: #d92d20;
+  /* Gender coding in the family chart: the system's one vivid accent (blue) for male, a
+     saturated stop from the peach pastel family for female — extends the palette by exactly
+     one hue rather than introducing an unrelated color, per DESIGN.md's "no more than two
+     pastel washes" guidance. */
+  --male: #0069e0;
+  --male-foreground: #ffffff;
+  --female: #ff6b47;
+  --female-foreground: #ffffff;
+  --border: #dbe7f2;
+  --input: #dbe7f2;
+  --ring: #0069e0;
+  --chart-1: #0069e0;
+  --chart-2: #0099ff;
+  --chart-3: #16a34a;
+  --chart-4: #f97316;
+  --chart-5: #9333ea;
+  --radius: 1rem;
+  --sidebar: #fafdff;
+  --sidebar-foreground: #0a0d12;
+  --sidebar-primary: #181d27;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #cce7ff;
+  --sidebar-accent-foreground: #0069e0;
+  --sidebar-border: #dbe7f2;
+  --sidebar-ring: #0069e0;
 }
 
 .dark {
-  --background: oklch(0.2 0.024 145);
-  --foreground: oklch(0.94 0.018 87);
-  --card: oklch(0.25 0.026 145);
-  --card-foreground: oklch(0.94 0.018 87);
-  --popover: oklch(0.25 0.026 145);
-  --popover-foreground: oklch(0.94 0.018 87);
-  --primary: oklch(0.74 0.1 150);
-  --primary-foreground: oklch(0.17 0.03 150);
-  --secondary: oklch(0.3 0.03 140);
-  --secondary-foreground: oklch(0.94 0.018 87);
-  --muted: oklch(0.3 0.026 140);
-  --muted-foreground: oklch(0.72 0.025 90);
-  --accent: oklch(0.78 0.11 75);
-  --accent-foreground: oklch(0.22 0.04 75);
-  --destructive: oklch(0.65 0.16 33);
-  --male: oklch(0.72 0.12 258);
-  --male-foreground: oklch(0.18 0.03 258);
-  --female: oklch(0.75 0.14 12);
-  --female-foreground: oklch(0.2 0.03 12);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 16%);
-  --ring: oklch(0.6 0.08 150);
-  --chart-1: oklch(0.74 0.1 150);
-  --chart-2: oklch(0.78 0.11 75);
-  --chart-3: oklch(0.68 0.1 200);
-  --chart-4: oklch(0.68 0.13 33);
-  --chart-5: oklch(0.7 0.09 300);
-  --sidebar: oklch(0.23 0.026 145);
-  --sidebar-foreground: oklch(0.94 0.018 87);
-  --sidebar-primary: oklch(0.74 0.1 150);
-  --sidebar-primary-foreground: oklch(0.17 0.03 150);
-  --sidebar-accent: oklch(0.3 0.03 140);
-  --sidebar-accent-foreground: oklch(0.94 0.018 87);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.6 0.08 150);
+  --background: #0a0d12;
+  --foreground: #fafdff;
+  --card: #181d27;
+  --card-foreground: #fafdff;
+  --popover: #21262f;
+  --popover-foreground: #fafdff;
+  --primary: #fafdff;
+  --primary-foreground: #181d27;
+  --secondary: #21262f;
+  --secondary-foreground: #fafdff;
+  --muted: #21262f;
+  --muted-foreground: #93979f;
+  --accent: #0b2e4d;
+  --accent-foreground: #66b8ff;
+  --destructive: #f87171;
+  --male: #4a9eff;
+  --male-foreground: #0a0d12;
+  --female: #ff9470;
+  --female-foreground: #0a0d12;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.16);
+  --ring: #0099ff;
+  --chart-1: #4a9eff;
+  --chart-2: #66c2ff;
+  --chart-3: #4ade80;
+  --chart-4: #fb923c;
+  --chart-5: #c084fc;
+  --sidebar: #181d27;
+  --sidebar-foreground: #fafdff;
+  --sidebar-primary: #fafdff;
+  --sidebar-primary-foreground: #181d27;
+  --sidebar-accent: #0b2e4d;
+  --sidebar-accent-foreground: #66b8ff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #0099ff;
 }
 
 @theme inline {
-  --font-sans: 'Nunito Sans Variable', sans-serif;
-  --font-display: 'Fraunces Variable', 'Nunito Sans Variable', serif;
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Variable', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

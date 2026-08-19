@@ -19,7 +19,7 @@ function HomePage() {
           <span className="border-accent/40 bg-accent/10 text-accent-foreground/80 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium tracking-wide">
             Pendiri → Anak → Cucu → Cicit
           </span>
-          <h1 className="font-display mt-5 text-4xl leading-[1.1] font-semibold text-balance sm:text-5xl">
+          <h1 className="font-display mt-5 text-5xl leading-[1.05] font-medium tracking-tight text-balance sm:text-6xl lg:text-7xl">
             Setiap keluarga punya catatan. Ini tempatnya.
           </h1>
           <p className="text-muted-foreground mt-4 max-w-md text-balance">

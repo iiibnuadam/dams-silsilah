@@ -52,7 +52,7 @@ function DashboardIndex() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Silsilah Saya</h1>
+          <h1 className="font-display text-3xl font-medium">Silsilah Saya</h1>
           <p className="text-muted-foreground text-sm">Kelola semua silsilah keluarga yang Anda miliki atau akses.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -102,7 +102,7 @@ function DashboardIndex() {
             <Link key={tree.id} to="/trees/$treeId" params={{ treeId: tree.id }}>
               <Card className="border-border/70 hover:border-primary/50 hover:shadow-primary/5 h-full border-l-4 border-l-accent transition-all hover:shadow-md">
                 <CardHeader>
-                  <CardTitle className="font-display text-lg font-semibold">{tree.name}</CardTitle>
+                  <CardTitle className="font-display text-lg font-medium">{tree.name}</CardTitle>
                   {tree.description && <CardDescription>{tree.description}</CardDescription>}
                 </CardHeader>
               </Card>

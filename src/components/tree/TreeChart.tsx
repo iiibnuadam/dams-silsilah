@@ -157,10 +157,28 @@ export function TreeChart({
             fitView
             minZoom={0.1}
             proOptions={{ hideAttribution: true }}
+            colorMode="light"
           >
             <Background gap={20} className="opacity-40" />
-            <Controls />
-            <MiniMap pannable zoomable className="bg-card! border-border! border" nodeColor="var(--primary)" />
+            <Controls
+              className="[&_button]:border-border overflow-hidden rounded-lg! border! shadow-md!"
+              style={
+                {
+                  "--xy-controls-button-background-color": "var(--card)",
+                  "--xy-controls-button-background-color-hover": "var(--muted)",
+                  "--xy-controls-button-color": "var(--foreground)",
+                  "--xy-controls-button-color-hover": "var(--foreground)",
+                  "--xy-controls-button-border-color": "var(--border)",
+                } as React.CSSProperties
+              }
+            />
+            <MiniMap
+              pannable
+              zoomable
+              className="bg-card! border-border! border"
+              nodeColor="var(--primary)"
+              style={{ "--xy-minimap-mask-background-color": "color-mix(in oklab, var(--foreground) 15%, transparent)" } as React.CSSProperties}
+            />
           </ReactFlow>
         )}
 
@@ -175,7 +193,7 @@ export function TreeChart({
             <TreesIcon className="size-5" />
           </div>
           <div className="min-w-0 leading-tight">
-            <p className="font-display truncate text-sm font-semibold">{detail.tree.name}</p>
+            <p className="font-display truncate text-sm font-medium">{detail.tree.name}</p>
             <p className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">Silsilah Keluarga</p>
           </div>
           {isOwner && (
@@ -212,7 +230,7 @@ export function TreeChart({
 
         {detail.members.length > 0 && (
           <div className="bg-card/95 border-border pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-4 rounded-full border px-5 py-2 text-xs shadow-md backdrop-blur">
-            <span className="text-primary font-display text-base font-semibold">{detail.stats.total}</span>
+            <span className="text-primary font-display text-base font-medium">{detail.stats.total}</span>
             <span className="text-muted-foreground -ml-3">Anggota</span>
             <span className="bg-border h-4 w-px" />
             <StatItem label="Laki-laki" value={detail.stats.male} />

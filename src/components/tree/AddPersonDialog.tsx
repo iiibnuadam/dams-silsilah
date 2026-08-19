@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldGroup, FieldError, FieldSeparator } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Combobox,
   ComboboxContent,
@@ -40,6 +41,7 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
   const [fullName, setFullName] = useState("");
   const [gender, setGender] = useState<"male" | "female">("male");
   const [birthDate, setBirthDate] = useState("");
+  const [isDeceased, setIsDeceased] = useState(false);
   const [deathDate, setDeathDate] = useState("");
   const [occupation, setOccupation] = useState("");
   const [phone, setPhone] = useState("");
@@ -73,6 +75,7 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
     setFullName("");
     setGender("male");
     setBirthDate("");
+    setIsDeceased(false);
     setDeathDate("");
     setOccupation("");
     setPhone("");
@@ -109,7 +112,7 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
               gender,
               photoUrl,
               birthDate: birthDate || undefined,
-              deathDate: deathDate || undefined,
+              deathDate: isDeceased ? deathDate || undefined : undefined,
               occupation: occupation || undefined,
               phone: phone || undefined,
               notes: notes || undefined,
@@ -192,16 +195,22 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field orientation="responsive">
-                  <div className="w-full">
-                    <FieldLabel htmlFor="birthDate">Tanggal Lahir</FieldLabel>
-                    <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
-                  </div>
-                  <div className="w-full">
+                <Field>
+                  <FieldLabel htmlFor="birthDate">Tanggal Lahir</FieldLabel>
+                  <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                </Field>
+                <Field orientation="horizontal">
+                  <FieldLabel htmlFor="isDeceased" className="flex-1 font-normal">
+                    Sudah meninggal dunia
+                  </FieldLabel>
+                  <Switch id="isDeceased" checked={isDeceased} onCheckedChange={setIsDeceased} />
+                </Field>
+                {isDeceased && (
+                  <Field>
                     <FieldLabel htmlFor="deathDate">Tanggal Wafat</FieldLabel>
                     <Input id="deathDate" type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} />
-                  </div>
-                </Field>
+                  </Field>
+                )}
                 <Field orientation="responsive">
                   <div className="w-full">
                     <FieldLabel htmlFor="occupation">Pekerjaan</FieldLabel>

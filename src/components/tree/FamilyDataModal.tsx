@@ -9,8 +9,9 @@ import {
   SproutIcon,
   StarIcon,
   UserIcon,
+  XIcon,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -147,13 +148,13 @@ export function FamilyDataModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden p-0 sm:max-w-5xl">
+        <DialogContent showCloseButton={false} className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden p-0 sm:max-w-5xl">
           <div className="flex flex-wrap items-center gap-4 border-b p-5">
             <div className="bg-primary text-primary-foreground flex size-12 shrink-0 items-center justify-center rounded-xl">
               <Building2Icon className="size-6" />
             </div>
             <div className="min-w-0 flex-1 leading-tight">
-              <p className="font-display truncate text-lg font-semibold">Pusat Data Silsilah</p>
+              <p className="font-display truncate text-lg font-medium">Pusat Data Silsilah</p>
               <p className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">
                 Family Data Management
               </p>
@@ -170,6 +171,9 @@ export function FamilyDataModal({
             <Button variant="outline" size="sm" onClick={() => downloadCsv(members, tree.name)}>
               <DownloadIcon /> Download Excel
             </Button>
+            <DialogClose render={<Button variant="ghost" size="icon-sm" aria-label="Tutup" />}>
+              <XIcon />
+            </DialogClose>
           </div>
 
           <div className="grid grid-cols-2 gap-3 px-5 pt-4 sm:grid-cols-4">
