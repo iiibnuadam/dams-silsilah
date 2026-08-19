@@ -5,6 +5,7 @@ import {
   ChevronRightIcon,
   DownloadIcon,
   HeartIcon,
+  LinkIcon,
   SearchIcon,
   SproutIcon,
   StarIcon,
@@ -19,13 +20,16 @@ import { EditPersonDialog } from "@/components/tree/EditPersonDialog";
 import { EditRelationshipDialog } from "@/components/tree/EditRelationshipDialog";
 import { AddPersonDialog } from "@/components/tree/AddPersonDialog";
 import { RelationshipDialog } from "@/components/tree/RelationshipDialog";
+import { ImportPersonsDialog } from "@/components/tree/ImportPersonsDialog";
 import { buildFamilySections, type FamilyRow } from "@/lib/tree/familyGroups";
+import { downloadCsv } from "@/lib/csv";
 import type { TreeDetail } from "@/lib/tree/detail";
 
 type Member = TreeDetail["members"][number];
 type Relationship = TreeDetail["relationships"][number];
 
 const PAGE_SIZE = 8;
+const DESCENT_TYPES = new Set(["biological_child", "adopted_child", "child_in_law"]);
 
 function initials(name: string) {
   return name
@@ -36,11 +40,7 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function toCsvValue(value: string) {
-  return `"${value.replace(/"/g, '""')}"`;
-}
-
-function downloadCsv(members: Member[], treeName: string) {
+function downloadMembersCsv(members: Member[], treeName: string) {
   const header = ["Nama", "Peran", "Generasi", "Jenis Kelamin", "Pekerjaan", "No. HP", "Tanggal Lahir", "Tanggal Wafat"];
   const rows = members.map((m) => [
     m.person.fullName,
@@ -52,14 +52,7 @@ function downloadCsv(members: Member[], treeName: string) {
     m.person.birthDate ?? "",
     m.person.deathDate ?? "",
   ]);
-  const csv = [header, ...rows].map((row) => row.map(toCsvValue).join(",")).join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${treeName}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadCsv(header, rows, `${treeName}.csv`);
 }
 
 export function FamilyDataModal({
@@ -168,7 +161,7 @@ export function FamilyDataModal({
                 onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="sm" onClick={() => downloadCsv(members, tree.name)}>
+            <Button variant="outline" size="sm" onClick={() => downloadMembersCsv(members, tree.name)}>
               <DownloadIcon /> Download Excel
             </Button>
             <DialogClose render={<Button variant="ghost" size="icon-sm" aria-label="Tutup" />}>
@@ -187,6 +180,7 @@ export function FamilyDataModal({
             <div className="flex items-center gap-2 px-5 pt-4">
               <AddPersonDialog treeId={treeId} shareToken={shareToken} />
               {members.length > 0 && <RelationshipDialog treeId={treeId} shareToken={shareToken} members={members} />}
+              <ImportPersonsDialog treeId={treeId} shareToken={shareToken} />
             </div>
           )}
 
@@ -214,6 +208,7 @@ export function FamilyDataModal({
                       row={row}
                       memberById={memberById}
                       relationship={relationship}
+                      relationships={relationships}
                       canEdit={canEdit}
                       onEditMember={setEditingMemberId}
                       onEditRelationship={setEditingRelationshipId}
@@ -329,6 +324,7 @@ function RowWithSection({
   row,
   memberById,
   relationship,
+  relationships,
   canEdit,
   onEditMember,
   onEditRelationship,
@@ -339,10 +335,17 @@ function RowWithSection({
   row: FamilyRow;
   memberById: Map<string, Member>;
   relationship: Relationship | undefined;
+  relationships: Relationship[];
   canEdit: boolean;
   onEditMember: (memberId: string) => void;
   onEditRelationship: (relationshipId: string) => void;
 }) {
+  function descentRelationshipFor(childId: string): Relationship | undefined {
+    return relationships.find(
+      (r) => DESCENT_TYPES.has(r.type) && r.toMemberId === childId && row.memberIds.includes(r.fromMemberId),
+    );
+  }
+
   const rowMembers = row.memberIds.map((id) => memberById.get(id)).filter((m): m is Member => Boolean(m));
   const children = row.childMemberIds.map((id) => memberById.get(id)).filter((m): m is Member => Boolean(m));
   const primary = rowMembers[0];
@@ -390,17 +393,33 @@ function RowWithSection({
             <p className="text-muted-foreground text-xs italic">Belum terdokumentasi</p>
           ) : (
             <div className="flex flex-wrap gap-1">
-              {children.map((child) => (
-                <button
-                  key={child.id}
-                  type="button"
-                  onClick={canEdit ? () => onEditMember(child.id) : undefined}
-                  disabled={!canEdit}
-                  className="border-border bg-background rounded-full border px-2 py-0.5 text-xs enabled:hover:border-primary/40 enabled:cursor-pointer"
-                >
-                  {child.person.fullName}
-                </button>
-              ))}
+              {children.map((child) => {
+                const rel = descentRelationshipFor(child.id);
+                return (
+                  <span
+                    key={child.id}
+                    className="border-border bg-background inline-flex items-center gap-0.5 rounded-full border py-0.5 pr-0.5 pl-2 text-xs"
+                  >
+                    <button
+                      type="button"
+                      onClick={canEdit ? () => onEditMember(child.id) : undefined}
+                      disabled={!canEdit}
+                      className="enabled:hover:text-primary enabled:cursor-pointer"
+                    >
+                      {child.person.fullName}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!rel || !canEdit}
+                      onClick={() => rel && onEditRelationship(rel.id)}
+                      aria-label="Edit relasi"
+                      className="text-muted-foreground shrink-0 rounded-full p-0.5 enabled:hover:text-primary enabled:cursor-pointer"
+                    >
+                      <LinkIcon className="size-3" />
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           )}
         </td>

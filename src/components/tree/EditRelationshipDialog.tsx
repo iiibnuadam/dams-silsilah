@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { updateRelationship } from "@/server/relationships";
+import { MemberCombobox } from "@/components/tree/MemberCombobox";
+import { deleteRelationship, updateRelationship } from "@/server/relationships";
 import type { TreeDetail } from "@/lib/tree/detail";
 
 type Relationship = TreeDetail["relationships"][number];
@@ -49,10 +61,6 @@ export function EditRelationshipDialog({
 
   const isSpouse = type === "spouse";
 
-  function memberName(memberId: string) {
-    return members.find((m) => m.id === memberId)?.person.fullName ?? "Pilih individu";
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!relationship) return;
@@ -78,6 +86,20 @@ export function EditRelationshipDialog({
       await router.invalidate();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan perubahan.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!relationship) return;
+    setLoading(true);
+    try {
+      await deleteRelationship({ data: { treeId, shareToken, relationshipId: relationship.id } });
+      onOpenChange(false);
+      await router.invalidate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menghapus relasi.");
     } finally {
       setLoading(false);
     }
@@ -109,33 +131,11 @@ export function EditRelationshipDialog({
             </Field>
             <Field>
               <FieldLabel>{isSpouse ? "Individu A" : "Induk"}</FieldLabel>
-              <Select value={fromMemberId} onValueChange={(v) => setFromMemberId(v ?? "")}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>{(v: string | null) => memberName(v ?? "")}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.person.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MemberCombobox members={members} value={fromMemberId} onValueChange={setFromMemberId} />
             </Field>
             <Field>
               <FieldLabel>{isSpouse ? "Individu B" : "Anak"}</FieldLabel>
-              <Select value={toMemberId} onValueChange={(v) => setToMemberId(v ?? "")}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>{(v: string | null) => memberName(v ?? "")}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.person.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MemberCombobox members={members} value={toMemberId} onValueChange={setToMemberId} />
             </Field>
             {isSpouse && (
               <Field>
@@ -153,7 +153,22 @@ export function EditRelationshipDialog({
             )}
             {error && <FieldError>{error}</FieldError>}
           </FieldGroup>
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 sm:justify-between">
+            <AlertDialog>
+              <AlertDialogTrigger render={<Button type="button" variant="destructive" disabled={loading} />}>
+                Hapus Relasi
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus relasi ini?</AlertDialogTitle>
+                  <AlertDialogDescription>Tindakan ini tidak dapat dibatalkan.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Hapus</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button type="submit" disabled={loading}>
               {loading ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>

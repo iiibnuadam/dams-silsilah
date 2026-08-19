@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldGroup, FieldError, FieldDescription } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MemberCombobox } from "@/components/tree/MemberCombobox";
 import { createRelationship } from "@/server/relationships";
 import type { TreeDetail } from "@/lib/tree/detail";
 
@@ -105,33 +106,11 @@ export function RelationshipDialog({
             </Field>
             <Field>
               <FieldLabel>{isSpouse ? "Individu A" : "Induk"}</FieldLabel>
-              <Select value={fromMemberId} onValueChange={(v) => setFromMemberId(v ?? "")}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>{(v: string | null) => members.find((m) => m.id === v)?.person.fullName ?? "Pilih individu"}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.person.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MemberCombobox members={members} value={fromMemberId} onValueChange={setFromMemberId} />
             </Field>
             <Field>
               <FieldLabel>{isSpouse ? "Individu B" : "Anak"}</FieldLabel>
-              <Select value={toMemberId} onValueChange={(v) => setToMemberId(v ?? "")}>
-                <SelectTrigger className="w-full">
-                  <SelectValue>{(v: string | null) => members.find((m) => m.id === v)?.person.fullName ?? "Pilih individu"}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.person.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <MemberCombobox members={members} value={toMemberId} onValueChange={setToMemberId} />
             </Field>
             {isSpouse && (
               <Field>

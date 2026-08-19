@@ -16,7 +16,7 @@ function SharedTreePage() {
         <h1 className="font-display text-2xl font-medium">{detail.tree.name}</h1>
         {detail.tree.description && <p className="text-muted-foreground text-sm">{detail.tree.description}</p>}
       </div>
-      <TreeChart detail={detail} shareToken={detail.shareToken} />
+      <TreeChart key={detail.tree.id} detail={detail} shareToken={detail.shareToken} />
     </div>
   );
 }

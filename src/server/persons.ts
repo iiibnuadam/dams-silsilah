@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { persons, treeMembers } from "@/db/schema";
+import { collaborators, persons, treeMembers, trees } from "@/db/schema";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { assertCanEdit, resolveTreeAccess } from "@/lib/tree/access";
 import { logAudit } from "@/lib/tree/audit";
@@ -32,6 +32,35 @@ export const searchPersons = createServerFn({ method: "GET" })
       .from(persons)
       .where(and(...conditions))
       .limit(20);
+  });
+
+/**
+ * Other trees the current user can access (owns or collaborates on) that this same person is
+ * also a member of — a person is global (FR-3.2) so can legitimately appear in more than one
+ * tree. Deliberately scoped to the caller's own accessible trees only, never a global lookup:
+ * otherwise this would leak that a person also belongs to someone else's private tree.
+ */
+export const getPersonOtherTrees = createServerFn({ method: "GET" })
+  .inputValidator(z.object({ personId: z.uuid(), excludeTreeId: z.uuid() }))
+  .handler(async ({ data }) => {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const owned = await db
+      .select({ id: trees.id, name: trees.name })
+      .from(treeMembers)
+      .innerJoin(trees, eq(treeMembers.treeId, trees.id))
+      .where(and(eq(treeMembers.personId, data.personId), eq(trees.ownerId, user.id)));
+    const collabTrees = await db
+      .select({ id: trees.id, name: trees.name })
+      .from(treeMembers)
+      .innerJoin(trees, eq(treeMembers.treeId, trees.id))
+      .innerJoin(collaborators, eq(collaborators.treeId, trees.id))
+      .where(and(eq(treeMembers.personId, data.personId), eq(collaborators.userId, user.id)));
+
+    const byId = new Map([...owned, ...collabTrees].map((t) => [t.id, t]));
+    byId.delete(data.excludeTreeId);
+    return [...byId.values()];
   });
 
 /**

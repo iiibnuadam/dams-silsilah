@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
+import { ExternalLinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldGroup, FieldError, FieldDescription } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { updatePerson } from "@/server/persons";
+import { getPersonOtherTrees, updatePerson } from "@/server/persons";
 import { uploadPersonPhoto } from "@/server/storage";
 import type { TreeDetail } from "@/lib/tree/detail";
 
@@ -36,6 +37,7 @@ export function EditPersonDialog({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [otherTrees, setOtherTrees] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     if (!member) return;
@@ -50,6 +52,14 @@ export function EditPersonDialog({
     setPhotoFile(null);
     setError(null);
   }, [member]);
+
+  useEffect(() => {
+    if (!member) {
+      setOtherTrees([]);
+      return;
+    }
+    getPersonOtherTrees({ data: { personId: member.personId, excludeTreeId: treeId } }).then(setOtherTrees);
+  }, [member, treeId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,6 +112,24 @@ export function EditPersonDialog({
                 <FieldLabel htmlFor="edit-fullName">Nama Lengkap</FieldLabel>
                 <Input id="edit-fullName" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </Field>
+              {otherTrees.length > 0 && (
+                <Field>
+                  <FieldLabel>Muncul Juga di Silsilah Lain</FieldLabel>
+                  <div className="flex flex-col gap-1">
+                    {otherTrees.map((t) => (
+                      <Link
+                        key={t.id}
+                        to="/trees/$treeId"
+                        params={{ treeId: t.id }}
+                        className="text-primary inline-flex w-fit items-center gap-1 text-sm hover:underline"
+                      >
+                        <ExternalLinkIcon className="size-3.5" /> {t.name}
+                      </Link>
+                    ))}
+                  </div>
+                  <FieldDescription>Orang ini adalah individu global yang sama di silsilah lain.</FieldDescription>
+                </Field>
+              )}
               <Field>
                 <FieldLabel>Jenis Kelamin</FieldLabel>
                 <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female")}>

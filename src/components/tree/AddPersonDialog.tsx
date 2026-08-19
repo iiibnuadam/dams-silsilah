@@ -162,6 +162,9 @@ export function AddPersonDialog({ treeId, shareToken }: { treeId: string; shareT
                   onValueChange={(value) => setSelectedExisting(value as PersonSearchResult | null)}
                   onInputValueChange={setQuery}
                   itemToStringLabel={(item) => (item as PersonSearchResult)?.fullName ?? ""}
+                  isItemEqualToValue={(item, value) =>
+                    (item as PersonSearchResult | null)?.id === (value as PersonSearchResult | null)?.id
+                  }
                 >
                   <ComboboxInput placeholder="Ketik nama..." />
                   <ComboboxContent>

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   computeGenerations,
+  findUltimateAncestor,
   getDescendantMemberIds,
   getHiddenByCollapse,
   wouldCreateCycle,
@@ -92,4 +93,21 @@ test("getHiddenByCollapse cascades to a hidden spouse's own children", () => {
   ];
   const hidden = getHiddenByCollapse(["F"], remarriageEdges);
   assert.deepEqual([...hidden].sort(), ["C", "S", "StepChild"]);
+});
+
+test("findUltimateAncestor stays put when the founder already has no parent", () => {
+  assert.equal(findUltimateAncestor("F", edges), "F");
+});
+
+test("findUltimateAncestor walks up through a newly added parent above the current founder", () => {
+  const withGrandparent: RelationshipEdge[] = [...edges, { fromMemberId: "GreatGrandparent", toMemberId: "F", type: "biological_child" }];
+  assert.equal(findUltimateAncestor("F", withGrandparent), "GreatGrandparent");
+});
+
+test("findUltimateAncestor walks up multiple generations at once", () => {
+  const chain: RelationshipEdge[] = [
+    { fromMemberId: "Root", toMemberId: "Mid", type: "biological_child" },
+    { fromMemberId: "Mid", toMemberId: "Leaf", type: "biological_child" },
+  ];
+  assert.equal(findUltimateAncestor("Leaf", chain), "Root");
 });

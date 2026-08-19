@@ -160,6 +160,31 @@ export function getHiddenByCollapse(collapsedIds: Iterable<string>, edges: Relat
 }
 
 /**
+ * Walks upward from `startMemberId` via descent edges (child -> parent) as far as it goes, and
+ * returns whoever has no parent recorded — the true root of that lineage. Used to keep the
+ * tree's founder in sync: if someone adds a parent above the current founder (extending the
+ * tree upward), the founder needs to shift to that new ancestor, since generation is always
+ * computed by walking *down* from the founder — otherwise everything above the old founder
+ * would be forever "unreached".
+ */
+export function findUltimateAncestor(startMemberId: string, edges: RelationshipEdge[]): string {
+  const parentOf = new Map<string, string>();
+  for (const edge of edges) {
+    if (DESCENT_TYPES.has(edge.type)) parentOf.set(edge.toMemberId, edge.fromMemberId);
+  }
+
+  let current = startMemberId;
+  const visited = new Set([current]);
+  while (parentOf.has(current)) {
+    const next = parentOf.get(current)!;
+    if (visited.has(next)) break; // defensive: a cycle should never exist (wouldCreateCycle prevents it), but don't infinite-loop if one slips through
+    current = next;
+    visited.add(current);
+  }
+  return current;
+}
+
+/**
  * Returns true if adding a child edge (parentMemberId -> childMemberId) would create a cycle,
  * i.e. childMemberId is already an ancestor of parentMemberId via existing child edges.
  */

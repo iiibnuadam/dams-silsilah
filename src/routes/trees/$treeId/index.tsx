@@ -11,5 +11,5 @@ function TreeChartPage() {
   const detail = Route.useLoaderData();
   const { user } = Route.useRouteContext();
 
-  return <TreeChart detail={detail} isOwner={detail.tree.ownerId === user.id} fullHeight />;
+  return <TreeChart key={detail.tree.id} detail={detail} isOwner={detail.tree.ownerId === user?.id} fullHeight />;
 }
